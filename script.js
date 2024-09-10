@@ -12,7 +12,7 @@ function calculateFee() {
     errorMessage.textContent = '';
     errorMessage.classList.add('hidden');
 
-    if (isNaN(grossSalary) || isNaN(submissionDate.getTime())) {  // Correct check for invalid date
+    if (isNaN(grossSalary) || isNaN(submissionDate.getTime())) {
         errorMessage.textContent = "Please enter valid values.";
         errorMessage.classList.remove('hidden');
         return;
@@ -44,21 +44,13 @@ function calculateFee() {
         lateFee = first31DaysFee + remainingDaysFee;
     }
 
-    // Round the fee to the nearest integer and format it with commas
     lateFee = Math.round(lateFee);
     const formattedFee = lateFee.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-
     const multiple = lateFee > 0 ? (lateFee / grossSalary) : 0;
 
     let resultText = `${formattedFee}`;
     const feeElement = document.getElementById('fee');
-    
-    // Change color based on fee amount
-    if (lateFee > 0) {
-        feeElement.style.color = 'red'; // Red if there is a fee
-    } else {
-        feeElement.style.color = 'green'; // Green if no fee
-    }
+    feeElement.style.color = lateFee > 0 ? 'red' : 'green'; // Conditional styling based on fee value
 
     if (submissionDate <= deadlineDate) {
         resultText += ". There's no late fee since you've submitted on time.";
@@ -67,19 +59,13 @@ function calculateFee() {
     } else {
         const offensefee = 12 * grossSalary;
         const fee = offensefee.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-        resultText += ` up until 31st of August 2024. You have committed an offense and are liable to pay LKR ${fee} (12 months * gross salary) and may face imprisonment for up to one year or both.`;
+        resultText += ` up until 31st of August 2024. Under Section 90 (5) of the Act, not submitting the annual declaration by 1 September constitutes an offense. If convicted, you may face a fine of LKR ${fee} (equal to your last 12 months’ gross salary), imprisonment for up to one year, or both, subject to an investigation and successful prosecution by the Commission.`;
     }
 
     feeElement.textContent = resultText;
     document.getElementById('multiple').textContent = ` ${multiple.toFixed(2)}`;
-
-    // Show the result section
     document.getElementById('result').classList.remove('hidden');
-
-    // Generate forecast data
     generateForecast(grossSalary, deadlineDate);
-
-    // Hide the error message if no errors
     errorMessage.classList.add('hidden');
 }
 
@@ -87,8 +73,6 @@ function formatDate(date) {
     const day = date.getDate();
     const month = date.toLocaleString('en-GB', { month: 'long' });
     const year = date.getFullYear();
-    
-    // Adding suffix to the day (st, nd, rd, th)
     let suffix = 'th';
     if (day === 1 || day === 21 || day === 31) {
         suffix = 'st';
@@ -97,7 +81,6 @@ function formatDate(date) {
     } else if (day === 3 || day === 23) {
         suffix = 'rd';
     }
-
     return `${day}${suffix} of ${month} ${year}`;
 }
 
@@ -106,7 +89,7 @@ function generateForecast(grossSalary, deadlineDate) {
     const data = [];
     let maxFee = 0;
 
-    for (let i = 1; i <= 61; i++) {  // Forecast for up to 61 days delay
+    for (let i = 1; i <= 61; i++) {
         let fee = 0;
         if (i <= 31) {
             fee = (grossSalary / 30) * i;
@@ -115,10 +98,7 @@ function generateForecast(grossSalary, deadlineDate) {
             const remainingDaysFee = ((grossSalary * 6) / 30) * (i - 31);
             fee = first31DaysFee + remainingDaysFee;
         }
-
-        // Round the fee to the nearest integer for the forecast
         fee = Math.round(fee);
-
         labels.push(i + " days");
         data.push(fee);
         if (fee > maxFee) {
@@ -127,13 +107,9 @@ function generateForecast(grossSalary, deadlineDate) {
     }
 
     const ctx = document.getElementById('feeChart').getContext('2d');
-
-    // Destroy the previous chart if it exists
     if (feeChart) {
         feeChart.destroy();
     }
-
-    // Create a new chart instance
     feeChart = new Chart(ctx, {
         type: 'line',
         data: {
